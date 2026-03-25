@@ -1,0 +1,175 @@
+# Agent Configuration Schema
+# This file provides IDE autocompletion and validation for agent.yaml files
+
+name: "my-agent"
+version: "1.0.0"
+description: "Description of the agent"
+type: "chat"  # Options: chat, task, workflow, autonomous, multi-agent, tool-calling, custom
+framework: "evomap"  # Options: langchain, langgraph, autogen, crewai, dspy, openai-assistants, llamaindex, semantic-kernel, evomap, custom
+
+# Model Configuration
+models:
+  provider: "openai"
+  model: "gpt-4"
+  temperature: 0.7
+  maxTokens: 2048
+  topP: 0.9
+  apiKey: "${OPENAI_API_KEY}"  # Environment variable reference
+  timeout: 30000
+
+# Or multiple models for different purposes:
+# models:
+#   - provider: "openai"
+#     model: "gpt-4"
+#     temperature: 0.7
+#   - provider: "anthropic"
+#     model: "claude-3-sonnet-20240229"
+#     temperature: 0.5
+
+# Prompt Templates
+prompts:
+  system: "You are a helpful AI assistant."
+  templates:
+    greeting:
+      system: "Greet the user warmly."
+      user: "Hello, my name is {{name}}."
+      variables:
+        - name: "name"
+          type: "string"
+          required: true
+          description: "User's name"
+
+# Tools Configuration
+tools:
+  - name: "search"
+    description: "Search the web"
+    enabled: true
+    timeout: 30
+    config:
+      engine: "google"
+  - name: "calculator"
+    description: "Perform calculations"
+    enabled: true
+
+# Memory Configuration
+memory:
+  type: "buffer"  # Options: buffer, window, vector, graph, hybrid, none
+  maxTokens: 4000
+  windowSize: 10
+  vectorStore:
+    provider: "pinecone"
+    indexName: "agent-memory"
+    embeddingModel: "text-embedding-ada-002"
+
+# Workflow Definition (for workflow-type agents)
+workflow:
+  entryPoint: "start"
+  steps:
+    - id: "start"
+      name: "Initialize"
+      type: "llm"
+      config:
+        prompt: "Process the user input"
+      next: "process"
+    
+    - id: "process"
+      name: "Process"
+      type: "tool"
+      config:
+        tool: "search"
+      next:
+        - condition: "success"
+          step: "complete"
+        - condition: "error"
+          step: "error_handler"
+    
+    - id: "complete"
+      name: "Complete"
+      type: "llm"
+      config:
+        prompt: "Summarize results"
+      next: null
+    
+    - id: "error_handler"
+      name: "Handle Error"
+      type: "llm"
+      config:
+        prompt: "Handle the error gracefully"
+      next: null
+  
+  variables:
+    userInput: ""
+    searchResults: []
+
+# Multi-Agent Configuration (for multi-agent systems)
+agents:
+  - id: "planner"
+    name: "Planner Agent"
+    role: "planner"
+    model: "gpt-4"
+    prompt: "You are a planning specialist."
+    tools: []
+  
+  - id: "executor"
+    name: "Executor Agent"
+    role: "executor"
+    model: "gpt-3.5-turbo"
+    prompt: "You execute tasks efficiently."
+    tools: ["search", "calculator"]
+  
+  - id: "critic"
+    name: "Critic Agent"
+    role: "critic"
+    model: "gpt-4"
+    prompt: "You review and critique work."
+    tools: []
+
+# Execution Settings
+execution:
+  mode: "sync"  # Options: sync, async, streaming, batch
+  maxIterations: 10
+  timeout: 300
+  retry:
+    maxAttempts: 3
+    backoff: "exponential"  # Options: fixed, linear, exponential
+    delay: 1000
+
+# Security Configuration
+security:
+  sandbox: true
+  allowedTools: ["search", "calculator", "file-read"]
+  blockedTools: ["file-write", "execute"]
+  rateLimit:
+    requestsPerMinute: 60
+    tokensPerMinute: 10000
+
+# Observability Configuration
+observability:
+  logging:
+    level: "info"  # Options: debug, info, warn, error
+    destination: "console"  # Options: console, file, remote
+    includePrompts: false
+  tracing:
+    enabled: true
+    provider: "otel"  # Options: jaeger, zipkin, otel, langsmith, custom
+  metrics:
+    enabled: true
+    exportInterval: 60
+
+# Deployment Configuration
+deployment:
+  platform: "docker"  # Options: local, docker, kubernetes, lambda, cloud-run, ecs, azure-functions
+  scaling:
+    minReplicas: 1
+    maxReplicas: 10
+    targetCpu: 70
+  resources:
+    cpu: "1"
+    memory: "2Gi"
+    gpu: false
+
+# Framework-specific extensions
+extensions:
+  customField1: "value1"
+  customField2:
+    nested: true

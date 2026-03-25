@@ -1,0 +1,121 @@
+{
+  "Agent Configuration": {
+    "prefix": "agent",
+    "description": "Create a basic Agent configuration",
+    "body": [
+      "name: \"${1:my-agent}\"",
+      "version: \"${2:1.0.0}\"",
+      "description: \"${3:Agent description}\"",
+      "type: \"${4|chat,task,workflow,autonomous,multi-agent,tool-calling,custom|}\"",
+      "framework: \"${5|evomap,langchain,langgraph,autogen,crewai,dspy,openai-assistants,llamaindex,semantic-kernel,custom|}\"",
+      "",
+      "models:",
+      "  provider: \"${6|openai,anthropic,google,azure,deepseek,mistral,ollama,custom|}\"",
+      "  model: \"${7:gpt-4}\"",
+      "  temperature: ${8:0.7}",
+      "",
+      "prompts:",
+      "  system: \"${9:You are a helpful AI assistant.}\"",
+      "",
+      "tools:",
+      "  - name: \"${10:example-tool}\"",
+      "    enabled: true",
+      "",
+      "execution:",
+      "  mode: \"${11|sync,async,streaming,batch|}\"",
+      "  timeout: ${12:300}",
+      "",
+      "security:",
+      "  sandbox: true"
+    ]
+  },
+  "Model Configuration": {
+    "prefix": "model",
+    "description": "Add a model configuration block",
+    "body": [
+      "provider: \"${1|openai,anthropic,google,azure,deepseek,mistral,ollama,custom|}\"",
+      "model: \"${2:gpt-4}\"",
+      "temperature: ${3:0.7}",
+      "maxTokens: ${4:2048}",
+      "topP: ${5:0.9}",
+      "timeout: ${6:30000}"
+    ]
+  },
+  "Tool Configuration": {
+    "prefix": "tool",
+    "description": "Add a tool configuration",
+    "body": [
+      "- name: \"${1:tool-name}\"",
+      "  description: \"${2:Tool description}\"",
+      "  enabled: ${3|true,false|}",
+      "  timeout: ${4:30}",
+      "  config:",
+      "    ${5:key}: ${6:value}"
+    ]
+  },
+  "Memory Configuration": {
+    "prefix": "memory",
+    "description": "Add memory configuration",
+    "body": [
+      "memory:",
+      "  type: \"${1|buffer,window,vector,graph,hybrid,none|}\"",
+      "  maxTokens: ${2:4000}",
+      "  ${3|windowSize:,vectorStore:|}${4}"
+    ]
+  },
+  "Workflow Step": {
+    "prefix": "workflow-step",
+    "description": "Add a workflow step",
+    "body": [
+      "- id: \"${1:step-id}\"",
+      "  name: \"${2:Step Name}\"",
+      "  type: \"${3|llm,tool,condition,loop,parallel,wait,event|}\"",
+      "  config:",
+      "    ${4:key}: ${5:value}",
+      "  next: ${6:next-step-id}"
+    ]
+  },
+  "Agent Definition": {
+    "prefix": "subagent",
+    "description": "Add a sub-agent definition for multi-agent systems",
+    "body": [
+      "- id: \"${1:agent-id}\"",
+      "  name: \"${2:Agent Name}\"",
+      "  role: \"${3|planner,executor,critic,researcher,writer,reviewer,custom|}\"",
+      "  model: \"${4:gpt-4}\"",
+      "  prompt: \"${5:Agent system prompt}\"",
+      "  tools:",
+      "    - ${6:tool-name}"
+    ]
+  },
+  "Security Configuration": {
+    "prefix": "security",
+    "description": "Add security configuration",
+    "body": [
+      "security:",
+      "  sandbox: ${1|true,false|}",
+      "  allowedTools:",
+      "    - ${2:tool-name}",
+      "  rateLimit:",
+      "    requestsPerMinute: ${3:60}",
+      "    tokensPerMinute: ${4:10000}"
+    ]
+  },
+  "Observability Configuration": {
+    "prefix": "observability",
+    "description": "Add observability configuration",
+    "body": [
+      "observability:",
+      "  logging:",
+      "    level: \"${1|debug,info,warn,error|}\"",
+      "    destination: \"${2|console,file,remote|}\"",
+      "    includePrompts: ${3|false|}",
+      "  tracing:",
+      "    enabled: ${4|true,false|}",
+      "    provider: \"${5|jaeger,zipkin,otel,langsmith,custom|}\"",
+      "  metrics:",
+      "    enabled: ${6|true,false|}",
+      "    exportInterval: ${7:60}"
+    ]
+  }
+}

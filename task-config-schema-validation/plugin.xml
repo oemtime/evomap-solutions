@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<idea-plugin>
+    <id>ai.evomap.agent-config</id>
+    <name>EvoMap Agent Config</name>
+    <version>1.0.0</version>
+    <vendor email="support@evomap.ai" url="https://evomap.ai">EvoMap</vendor>
+
+    <description><![CDATA[
+        Schema validation and autocompletion for Agent configuration files.
+        Supports JSON and YAML configuration formats for various AI agent frameworks.
+    ]]></description>
+
+    <change-notes><![CDATA[
+        Initial release with JSON Schema support for agent configuration files.
+    ]]></change-notes>
+
+    <idea-version since-build="222"/>
+
+    <depends>com.intellij.modules.lang</depends>
+    <depends>org.jetbrains.plugins.yaml</depends>
+    <depends>com.intellij.modules.json</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- JSON Schema mapping -->
+        <jsonSchema.SchemaProviderFactory 
+            implementation="ai.evomap.agent.config.AgentConfigSchemaProviderFactory"/>
+        
+        <!-- File type association -->
+        <fileType name="Agent Config" 
+                  implementationClass="ai.evomap.agent.config.AgentConfigFileType"
+                  fieldName="INSTANCE"
+                  language="AgentConfig"
+                  extensions="agent.yaml;agent.yml;agent.json"/>
+        
+        <!-- Language -->
+        <lang.parserDefinition language="AgentConfig" 
+                               implementationClass="ai.evomap.agent.config.AgentConfigParserDefinition"/>
+        
+        <!-- Completion contributor -->
+        <completion.contributor language="yaml" 
+                                implementationClass="ai.evomap.agent.config.AgentConfigCompletionContributor"/>
+        
+        <!-- Inspections -->
+        <localInspection language="yaml"
+                         shortName="AgentConfigValidation"
+                         displayName="Agent Configuration Validation"
+                         groupName="EvoMap"
+                         enabledByDefault="true"
+                         level="ERROR"
+                         implementationClass="ai.evomap.agent.config.inspections.AgentConfigValidationInspection"/>
+        
+        <localInspection language="yaml"
+                         shortName="AgentConfigDeprecation"
+                         displayName="Agent Configuration Deprecation"
+                         groupName="EvoMap"
+                         enabledByDefault="true"
+                         level="WARNING"
+                         implementationClass="ai.evomap.agent.config.inspections.AgentConfigDeprecationInspection"/>
+        
+        <!-- Annotator -->
+        <annotator language="yaml" 
+                   implementationClass="ai.evomap.agent.config.AgentConfigAnnotator"/>
+        
+        <!-- Settings -->
+        <applicationService serviceImplementation="ai.evomap.agent.config.settings.AgentConfigSettings"/>
+        <applicationConfigurable parentId="tools" 
+                                 displayName="EvoMap Agent Config"
+                                 id="ai.evomap.agent.config.settings"
+                                 instance="ai.evomap.agent.config.settings.AgentConfigSettingsConfigurable"/>
+    </extensions>
+
+    <actions>
+        <action id="evomap.validateAgentConfig" 
+                class="ai.evomap.agent.config.actions.ValidateConfigAction"
+                text="Validate Agent Config"
+                description="Validate the current agent configuration file">
+            <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="$Cut"/>
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift V"/>
+        </action>
+        
+        <action id="evomap.generateAgentConfig"
+                class="ai.evomap.agent.config.actions.GenerateConfigAction"
+                text="Generate Agent Config"
+                description="Generate a new agent configuration file">
+            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewFile"/>
+        </action>
+    </actions>
+</idea-plugin>

@@ -1,0 +1,27 @@
+{
+  "name": "a2a-version-compatibility",
+  "version": "1.0.0",
+  "description": "A2A Protocol Version Compatibility Management System",
+  "main": "index.ts",
+  "types": "index.d.ts",
+  "scripts": {
+    "test": "ts-node example.ts",
+    "build": "tsc",
+    "example": "ts-node example.ts"
+  },
+  "keywords": [
+    "a2a",
+    "agent",
+    "protocol",
+    "version",
+    "compatibility",
+    "negotiation"
+  ],
+  "author": "EvoMap Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0"
+  }
+}

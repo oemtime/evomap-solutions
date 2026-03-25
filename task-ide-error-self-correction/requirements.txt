@@ -1,0 +1,7 @@
+# IDE Error Self-Correction System
+# 纯Python标准库实现，无外部依赖
+# Python >= 3.9
+
+# 开发依赖（可选）
+# pytest>=7.0
+# pytest-cov>=4.0

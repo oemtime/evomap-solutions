@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent监控仪表盘</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a25;
+            --bg-hover: #252535;
+            --accent-primary: #00ff88;
+            --accent-secondary: #00d4ff;
+            --accent-warning: #ffb800;
+            --accent-danger: #ff4757;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --text-muted: #606070;
+            --border-color: #2a2a3a;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* 顶部导航 */
+        .navbar {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .navbar-brand h1 {
+            font-size: 20px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .navbar-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent-primary);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 212, 255, 0.2));
+            border-color: var(--accent-primary);
+        }
+
+        /* 主内容区 */
+        .main-container {
+            padding: 24px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* 标签页 */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            color: var(--accent-primary);
+            border-bottom-color: var(--accent-primary);
+        }
+
+        /* 内容面板 */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* KPI卡片网格 */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        .kpi-card:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+        }
+
+        .kpi-card.critical {
+            border-color: var(--accent-danger);
+        }
+
+        .kpi-card.warning {
+            border-color: var(--accent-warning);
+        }
+
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .kpi-title {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .kpi-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .kpi-badge.good {
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--accent-primary);
+        }
+
+        .kpi-badge.warning {
+            background: rgba(255, 184, 0, 0.15);
+            color: var(--accent-warning);
+        }
+
+        .kpi-badge.critical {
+            background: rgba(255, 71, 87, 0.15);
+            color: var(--accent-danger);
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .kpi-value.good { color: var(--accent-primary); }
+        .kpi-value.warning { color: var(--accent-warning); }
+        .kpi-value.critical { color: var(--accent-danger); }
+
+        .kpi-trend {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .trend-up { color: var(--accent-danger); }
+        .trend-down { color: var(--accent-primary); }
+
+        /* 图表区域 */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .chart-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chart-btn {
+            padding: 4px 12px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .chart-btn.active {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* 告警面板 */
+        .alerts-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .alerts-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .alerts-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .alert-count {
+            display: flex;
+            gap: 12px;
+        }
+
+        .alert-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .alert-badge.p0 {
+            background: rgba(255, 71, 87, 0.2);
+            color: var(--accent-danger);
+        }
+
+        .alert-badge.p1 {
+            background: rgba(255, 184, 0, 0.2);
+            color: var(--accent-warning);
+        }
+
+        .alerts-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .alert-item {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            transition: background 0.2s;
+        }
+
+        .alert-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .alert-item:last-child {
+            border-bottom: none;
+        }
+
+        .alert-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .alert-icon.p0 { background: rgba(255, 71, 87, 0.2); }
+        .alert-icon.p1 { background: rgba(255, 184, 0, 0.2); }
+        .alert-icon.p2 { background: rgba(0, 212, 255, 0.2); }
+        .alert-icon.p3 { background: rgba(160, 160, 176, 0.2); }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .alert-message {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .alert-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .alert-time::before {
+            content: "🕐 ";
+        }
+
+        .alert-service::before {
+            content: "🔧 ";
+        }
+
+        /* 服务状态 */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .service-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .service-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .service-status.online {
+            background: var(--accent-primary);
+            box-shadow: 0 0 8px var(--accent-primary);
+        }
+
+        .service-status.degraded {
+            background: var(--accent-warning);
+            box-shadow: 0 0 8px var(--accent-warning);
+        }
+
+        .service-status.offline {
+            background: var(--accent-danger);
+            box-shadow: 0 0 8px var(--accent-danger);
+        }
+
+        .service-info {
+            flex: 1;
+        }
+
+        .service-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .service-uptime {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* 成本分析 */
+        .cost-breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .cost-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .cost-item:last-child {
+            border-bottom: none;
+        }
+
+        .cost-label {
+            color: var(--text-secondary);
+        }
+
+        .cost-value {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-weight: 600;
+        }
+
+        /* 滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .cost-breakdown {
+                grid-template-columns: 1fr;
+            }
+            
+            .navbar {
+                padding: 0 16px;
+            }
+            
+            .main-container {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <h1>🤖 Agent监控仪表盘</h1>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>系统运行正常</span>
+            </div>
+        </div>
+        <div class="navbar-actions">
+            <button class="btn" onclick="refreshData()">🔄 刷新</button>
+            <button class="btn btn-primary" onclick="exportReport()">📊 导出报告</button>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('overview')">📈 概览</div>
+            <div class="tab" onclick="switchTab('performance')">⚡ 性能</div>
+            <div class="tab" onclick="switchTab('cost')">💰 成本</div>
+            <div class="tab" onclick="switchTab('health')">🏥 健康</div>
+            <div class="tab" onclick="switchTab('alerts')">🔔 告警</div>
+        </div>
+
+        <!-- 概览面板 -->
+        <div id="overview" class="tab-content active">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">平均响应时间</span>
+                        <span class="kpi-badge good">正常</span>
+                    </div>
+                    <div class="kpi-value good" id="avgResponseTime">1.24s</div>
+                    <div class="kpi-trend">
+                        <span class="trend-down">↓ 12%</span>
+                        <span>较上小时</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">请求成功率</span>
+                        <span class="kpi-badge good">优秀</span>
+                    </div>
+                    <div class="kpi-value good" id="successRate">99.8%</div>
+                    <div class="kpi-trend">
+                        <span class="trend-down">↓ 0.1%</span>
+                        <span>较上小时</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">Token使用量</span>
+                        <span class="kpi-badge warning">注意</span>
+                    </div>
+                    <div class="kpi-value warning" id="tokenUsage">2.4M</div>
+                    <div class="kpi-trend">
+                        <span class="trend-up">↑ 23%</span>
+                        <span>较上小时</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">今日成本</span>
+                        <span class="kpi-badge good">正常</span>
+                    </div>
+                    <div class="kpi-value good" id="dailyCost">$45.20</div>
+                    <div class="kpi-trend">
+                        <span class="trend-up">↑ 8%</span>
+                        <span>较昨日</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">活跃会话</span>
+                        <span class="kpi-badge good">正常</span>
+                    </div>
+                    <div class="kpi-value good" id="activeSessions">128</div>
+                    <div class="kpi-trend">
+                        <span class="trend-down">↓ 5%</span>
+                        <span>较上小时</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">P95响应时间</span>
+                        <span class="kpi-badge good">正常</span>
+                    </div>
+                    <div class="kpi-value good" id="p95ResponseTime">2.8s</div>
+                    <div class="kpi-trend">
+                        <span class="trend-down">↓ 8%</span>
+                        <span>较上小时</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <span class="chart-title">实时请求趋势</span>
+                        <div class="chart-actions">
+                            <button class="chart-btn active">1H</button>
+                            <button class="chart-btn">6H</button>
+                            <button class="chart-btn">24H</button>
+                            <button class="chart-btn">7D</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="requestsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alerts-panel">
+                <div class="alerts-header">
+                    <span class="alerts-title">🔔 活跃告警</span>
+                    <div class="alert-count">
+                        <span class="alert-badge p0">P0: 0</span>
+                        <span class="alert-badge p1">P1: 2</span>
+                    </div>
+                </div>
+                <div class="alerts-list" id="alertsList">
+                    <div class="alert-item">
+                        <div class="alert-icon p1">⚠️</div>
+                        <div class="alert-content">
+                            <div class="alert-title">Token使用量接近阈值</div>
+                            <div class="alert-message">当前小时Token使用量已达到设定阈值的85%</div>
+                            <div class="alert-meta">
+                                <span class="alert-time">10分钟前</span>
+                                <span class="alert-service">llm-service</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert-item">
+                        <div class="alert-icon p2">ℹ️</div>
+                        <div class="alert-content">
+                            <div class="alert-title">响应时间略有上升</div>
+                            <div class="alert-message">过去15分钟平均响应时间上升15%</div>
+                            <div class="alert-meta">
+                                <span class="alert-time">25分钟前</span>
+                                <span class="alert-service">api-gateway</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 性能面板 -->
+        <div id="performance" class="tab-content">
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-title">响应时间分布</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="responseTimeChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-title">成功率趋势</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="successRateChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-title">错误率分析</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="errorRateChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-title">并发请求数</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="concurrentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 成本面板 -->
+        <div id="cost" class="tab-content">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">今日总成本</span>
+                    </div>
+                    <div class="kpi-value" id="totalCost">$45.20</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">本月累计</span>
+                    </div>
+                    <div class="kpi-value" id="monthlyCost">$1,284.50</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">平均单次成本</span>
+                    </div>
+                    <div class="kpi-value" id="avgCost">$0.008</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">预算使用率</span>
+                    </div>
+                    <div class="kpi-value warning" id="budgetUsage">78%</div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-title">Token使用趋势</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="tokenChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-title">成本构成</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="costBreakdownChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 健康面板 -->
+        <div id="health" class="tab-content">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">CPU使用率</span>
+                    </div>
+                    <div class="kpi-value good">42%</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">内存使用率</span>
+                    </div>
+                    <div class="kpi-value good">68%</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">磁盘使用率</span>
+                    </div>
+                    <div class="kpi-value good">45%</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">服务健康度</span>
+                    </div>
+                    <div class="kpi-value good">98%</div>
+                </div>
+            </div>
+
+            <div class="chart-card" style="margin-bottom: 24px;">
+                <div class="chart-header">
+                    <span class="chart-title">服务状态</span>
+                </div>
+                <div class="services-grid" id="servicesGrid">
+                    <div class="service-card">
+                        <div class="service-status online"></div>
+                        <div class="service-info">
+                            <div class="service-name">API Gateway</div>
+                            <div class="service-uptime">99.99% 可用</div>
+                        </div>
+                    </div>
+                    <div class="service-card">
+                        <div class="service-status online"></div>
+                        <div class="service-info">
+                            <div class="service-name">LLM Service</div>
+                            <div class="service-uptime">99.95% 可用</div>
+                        </div>
+                    </div>
+                    <div class="service-card">
+                        <div class="service-status online"></div>
+                        <div class="service-info">
+                            <div class="service-name">Context Store</div>
+                            <div class="service-uptime">100% 可用</div>
+                        </div>
+                    </div>
+                    <div class="service-card">
+                        <div class="service-status degraded"></div>
+                        <div class="service-info">
+                            <div class="service-name">Analytics</div>
+                            <div class="service-uptime">98.5% 可用</div>
+                        </div>
+                    </div>
+                    <div class="service-card">
+                        <div class="service-status online"></div>
+                        <div class="service-info">
+                            <div class="service-name">Auth Service</div>
+                            <div class="service-uptime">99.99% 可用</div>
+                        </div>
+                    </div>
+                    <div class="service-card">
+                        <div class="service-status online"></div>
+                        <div class="service-info">
+                            <div class="service-name">Rate Limiter</div>
+                            <div class="service-uptime">100% 可用</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-title">资源使用趋势</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="resourceChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-title">系统负载</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="loadChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 告警面板 -->
+        <div id="alerts" class="tab-content">
+            <div class="alerts-panel">
+                <div class="alerts-header">
+                    <span class="alerts-title">全部告警历史</span>
+                    <div class="alert-count">
+                        <span class="alert-badge p0">P0: 1</span>
+                        <span class="alert-badge p1">P1: 3</span>
+                    </div>
+                </div>
+                <div class="alerts-list">
+                    <div class="alert-item">
+                        <div class="alert-icon p0">🔴</div>
+                        <div class="alert-content">
+                            <div class="alert-title">LLM服务响应超时</div>
+                            <div class="alert-message">多个请求超时，平均响应时间超过10秒</div>
+                            <div class="alert-meta">
+                                <span class="alert-time">2小时前</span>
+                                <span class="alert-service">llm-service</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert-item">
+                        <div class="alert-icon p1">⚠️</div>
+                        <div class="alert-content">
+                            <div class="alert-title">Token使用量接近阈值</div>
+                            <div class="alert-message">当前小时Token使用量已达到设定阈值的85%</div>
+                            <div class="alert-meta">
+                                <span class="alert-time">10分钟前</span>
+                                <span class="alert-service">llm-service</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert-item">
+                        <div class="alert-icon p1">⚠️</div>
+                        <div class="alert-content">
+                            <div class="alert-title">内存使用率偏高</div>
+                            <div class="alert-message">系统内存使用率达到85%，建议扩容</div>
+                            <div class="alert-meta">
+                                <span class="alert-time">1小时前</span>
+                                <span class="alert-service">system</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert-item">
+                        <div class="alert-icon p2">ℹ️</div>
+                        <div class="alert-content">
+                            <div class="alert-title">响应时间略有上升</div>
+                            <div class="alert-message">过去15分钟平均响应时间上升15%</div>
+                            <div class="alert-meta">
+                                <span class="alert-time">25分钟前</span>
+                                <span class="alert-service">api-gateway</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 标签切换
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // 图表配置
+        Chart.defaults.color = '#a0a0b0';
+        Chart.defaults.borderColor = '#2a2a3a';
+
+        // 实时请求趋势图
+        const requestsCtx = document.getElementById('requestsChart').getContext('2d');
+        const requestsChart = new Chart(requestsCtx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 12}, (_, i) => `${i * 5}m`),
+                datasets: [{
+                    label: '请求数',
+                    data: [120, 135, 128, 142, 156, 148, 162, 175, 168, 182, 195, 188],
+                    borderColor: '#00ff88',
+                    backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: '错误数',
+                    data: [2, 1, 3, 2, 1, 2, 1, 3, 2, 1, 2, 1],
+                    borderColor: '#ff4757',
+                    backgroundColor: 'rgba(255, 71, 87, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        align: 'end'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#2a2a3a'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // 响应时间分布图
+        const responseTimeCtx = document.getElementById('responseTimeChart').getContext('2d');
+        new Chart(responseTimeCtx, {
+            type: 'bar',
+            data: {
+                labels: ['<100ms', '100-500ms', '500ms-1s', '1-2s', '2-5s', '>5s'],
+                datasets: [{
+                    label: '请求分布',
+                    data: [45, 120, 280, 350, 150, 25],
+                    backgroundColor: [
+                        '#00ff88',
+                        '#00ff88',
+                        '#00ff88',
+                        '#00d4ff',
+                        '#ffb800',
+                        '#ff4757'
+                    ],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // 成功率趋势图
+        const successRateCtx = document.getElementById('successRateChart').getContext('2d');
+        new Chart(successRateCtx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 24}, (_, i) => `${i}:00`),
+                datasets: [{
+                    label: '成功率',
+                    data: Array.from({length: 24}, () => 99 + Math.random() * 0.9),
+                    borderColor: '#00ff88',
+                    backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        min: 95,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // 错误率分析图
+        const errorRateCtx = document.getElementById('errorRateChart').getContext('2d');
+        new Chart(errorRateCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['超时', 'Rate Limit', '服务错误', '验证失败', '其他'],
+                datasets: [{
+                    data: [35, 25, 20, 15, 5],
+                    backgroundColor: ['#ff4757', '#ffb800', '#00d4ff', '#a0a0b0', '#606070'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+
+        // 并发请求数图
+        const concurrentCtx = document.getElementById('concurrentChart').getContext('2d');
+        new Chart(concurrentCtx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 60}, (_, i) => i),
+                datasets: [{
+                    label: '并发数',
+                    data: Array.from({length: 60}, () => Math.floor(20 + Math.random() * 30)),
+                    borderColor: '#00d4ff',
+                    backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // Token使用趋势图
+        const tokenCtx = document.getElementById('tokenChart').getContext('2d');
+        new Chart(tokenCtx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 7}, (_, i) => `${i + 1}日`),
+                datasets: [{
+                    label: 'Input Tokens',
+                    data: [1.2, 1.5, 1.8, 1.6, 2.1, 2.3, 2.4],
+                    borderColor: '#00ff88',
+                    backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                    fill: true
+                }, {
+                    label: 'Output Tokens',
+                    data: [0.8, 1.0, 1.2, 1.1, 1.4, 1.6, 1.7],
+                    borderColor: '#00d4ff',
+                    backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        // 成本构成图
+        const costBreakdownCtx = document.getElementById('costBreakdownChart').getContext('2d');
+        new Chart(costBreakdownCtx, {
+            type: 'pie',
+            data: {
+                labels: ['GPT-4', 'GPT-3.5', 'Claude', 'Embedding', '其他'],
+                datasets: [{
+                    data: [45, 25, 20, 7, 3],
+                    backgroundColor: ['#00ff88', '#00d4ff', '#ffb800', '#ff4757', '#a0a0b0'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+
+        // 资源使用趋势图
+        const resourceCtx = document.getElementById('resourceChart').getContext('2d');
+        new Chart(resourceCtx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 24}, (_, i) => `${i}:00`),
+                datasets: [{
+                    label: 'CPU',
+                    data: Array.from({length: 24}, () => 30 + Math.random() * 40),
+                    borderColor: '#00ff88',
+                    tension: 0.4
+                }, {
+                    label: '内存',
+                    data: Array.from({length: 24}, () => 50 + Math.random() * 30),
+                    borderColor: '#00d4ff',
+                    tension: 0.4
+                }, {
+                    label: '磁盘',
+                    data: Array.from({length: 24}, () => 40 + Math.random() * 10),
+                    borderColor: '#ffb800',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        // 系统负载图
+        const loadCtx = document.getElementById('loadChart').getContext('2d');
+        new Chart(loadCtx, {
+            type: 'bar',
+            data: {
+                labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                datasets: [{
+                    label: '负载',
+                    data: [0.5, 0.3, 0.8, 1.2, 1.0, 0.7],
+                    backgroundColor: '#00ff88',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // 刷新数据
+        function refreshData() {
+            // 模拟数据更新
+            document.getElementById('avgResponseTime').textContent = (1 + Math.random()).toFixed(2) + 's';
+            document.getElementById('successRate').textContent = (99 + Math.random() * 0.9).toFixed(1) + '%';
+            document.getElementById('tokenUsage').textContent = (2 + Math.random()).toFixed(1) + 'M';
+            
+            // 更新图表
+            requestsChart.data.datasets[0].data = Array.from({length: 12}, () => Math.floor(100 + Math.random() * 100));
+            requestsChart.update();
+        }
+
+        // 导出报告
+        function exportReport() {
+            alert('报告导出功能开发中...');
+        }
+
+        // 自动刷新
+        setInterval(refreshData, 30000);
+    </script>
+</body>
+</html>

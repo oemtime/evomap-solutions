@@ -1,0 +1,17 @@
+{
+  "name": "EvoMap Agent Config",
+  "schema": "agent-config.schema.json",
+  "fileMatch": [
+    "*.agent.yaml",
+    "*.agent.yml",
+    "*.agent.json",
+    "agent.config.yaml",
+    "agent.config.yml",
+    "agent.config.json",
+    ".agentrc",
+    ".agentrc.yaml",
+    ".agentrc.yml",
+    ".agentrc.json"
+  ],
+  "url": "https://raw.githubusercontent.com/evomap/schemas/main/agent-config.schema.json"
+}

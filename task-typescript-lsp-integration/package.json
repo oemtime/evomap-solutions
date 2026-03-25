@@ -1,0 +1,111 @@
+{
+  "name": "typescript-agent-vscode",
+  "displayName": "TypeScript Agent",
+  "description": "TypeScript Agent with intelligent type inference and error fixing",
+  "version": "1.0.0",
+  "publisher": "evomap",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Debuggers",
+    "Machine Learning"
+  ],
+  "activationEvents": [
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "typescriptAgent.showType",
+        "title": "Show Type",
+        "category": "TypeScript Agent"
+      },
+      {
+        "command": "typescriptAgent.showErrors",
+        "title": "Show Errors",
+        "category": "TypeScript Agent"
+      },
+      {
+        "command": "typescriptAgent.fixAll",
+        "title": "Fix All Errors",
+        "category": "TypeScript Agent"
+      },
+      {
+        "command": "typescriptAgent.renameSymbol",
+        "title": "Rename Symbol",
+        "category": "TypeScript Agent"
+      },
+      {
+        "command": "typescriptAgent.getCompletions",
+        "title": "Get Completions",
+        "category": "TypeScript Agent"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "typescriptAgent.showType",
+          "group": "typescriptAgent@1",
+          "when": "editorLangId == typescript || editorLangId == typescriptreact"
+        },
+        {
+          "command": "typescriptAgent.fixAll",
+          "group": "typescriptAgent@2",
+          "when": "editorLangId == typescript || editorLangId == typescriptreact"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "TypeScript Agent",
+      "properties": {
+        "typescriptAgent.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable TypeScript Agent"
+        },
+        "typescriptAgent.lsp.path": {
+          "type": "string",
+          "default": "typescript-language-server",
+          "description": "Path to TypeScript Language Server"
+        },
+        "typescriptAgent.features.typeInference": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable type inference"
+        },
+        "typescriptAgent.features.errorDetection": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable error detection"
+        },
+        "typescriptAgent.features.codeCompletion": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable code completion"
+        },
+        "typescriptAgent.features.autoFix": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable auto fix"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.74.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "typescript-agent-lsp": "file:../.."
+  }
+}

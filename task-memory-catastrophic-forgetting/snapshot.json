@@ -1,0 +1,75 @@
+{
+  "timestamp": "2026-03-25T11:42:37.129965",
+  "items": [
+    {
+      "id": "stm_1774410157128_c06de9a6",
+      "content": "User: 你好，我叫张三",
+      "type": "conversation",
+      "importance": 0.5,
+      "timestamp": "2026-03-25T11:42:37.128587"
+    },
+    {
+      "id": "stm_1774410157128_3c037b0f",
+      "content": "Agent: [基于记忆系统的回复] 我收到了你的消息。",
+      "type": "conversation",
+      "importance": 0.5,
+      "timestamp": "2026-03-25T11:42:37.128690"
+    },
+    {
+      "id": "stm_1774410157128_cc575991",
+      "content": "User: 我喜欢深色主题",
+      "type": "conversation",
+      "importance": 0.9,
+      "timestamp": "2026-03-25T11:42:37.128913"
+    },
+    {
+      "id": "stm_1774410157129_8ad0528c",
+      "content": "Agent: [基于记忆系统的回复] 我收到了你的消息。",
+      "type": "conversation",
+      "importance": 0.9,
+      "timestamp": "2026-03-25T11:42:37.129014"
+    },
+    {
+      "id": "stm_1774410157129_e2bacb94",
+      "content": "User: 请帮我写一段Python代码",
+      "type": "conversation",
+      "importance": 0.5,
+      "timestamp": "2026-03-25T11:42:37.129090"
+    },
+    {
+      "id": "stm_1774410157129_975db909",
+      "content": "Agent: [基于记忆系统的回复] 我收到了你的消息。",
+      "type": "conversation",
+      "importance": 0.5,
+      "timestamp": "2026-03-25T11:42:37.129193"
+    },
+    {
+      "id": "stm_1774410157129_3704a470",
+      "content": "User: 我住在杭州",
+      "type": "conversation",
+      "importance": 0.5,
+      "timestamp": "2026-03-25T11:42:37.129266"
+    },
+    {
+      "id": "stm_1774410157129_226ed578",
+      "content": "Agent: [基于记忆系统的回复] 我收到了你的消息。",
+      "type": "conversation",
+      "importance": 0.5,
+      "timestamp": "2026-03-25T11:42:37.129364"
+    },
+    {
+      "id": "stm_1774410157129_6fc26a6c",
+      "content": "User: 记得我喜欢什么主题吗？",
+      "type": "conversation",
+      "importance": 0.9,
+      "timestamp": "2026-03-25T11:42:37.129439"
+    },
+    {
+      "id": "stm_1774410157129_c575392f",
+      "content": "Agent: [基于记忆系统的回复] 我收到了你的消息。",
+      "type": "conversation",
+      "importance": 0.9,
+      "timestamp": "2026-03-25T11:42:37.129543"
+    }
+  ]
+}

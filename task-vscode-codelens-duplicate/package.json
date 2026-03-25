@@ -1,0 +1,153 @@
+{
+  "name": "duplicate-code-detector",
+  "displayName": "Duplicate Code Detector",
+  "description": "VS Code CodeLens extension for detecting duplicate code with real-time suggestions",
+  "version": "1.0.0",
+  "publisher": "evomap",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Debuggers",
+    "Machine Learning"
+  ],
+  "keywords": [
+    "duplicate",
+    "code quality",
+    "refactoring",
+    "codelens",
+    "agent"
+  ],
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:python",
+    "onLanguage:java",
+    "onLanguage:go",
+    "onLanguage:rust"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "duplicateCodeDetector.scanFile",
+        "title": "Scan Current File",
+        "category": "Duplicate Code"
+      },
+      {
+        "command": "duplicateCodeDetector.scanWorkspace",
+        "title": "Scan Workspace",
+        "category": "Duplicate Code"
+      },
+      {
+        "command": "duplicateCodeDetector.showReport",
+        "title": "Show Report",
+        "category": "Duplicate Code"
+      },
+      {
+        "command": "duplicateCodeDetector.extractFunction",
+        "title": "Extract Function",
+        "category": "Duplicate Code"
+      },
+      {
+        "command": "duplicateCodeDetector.jumpToDuplicate",
+        "title": "Jump to Duplicate",
+        "category": "Duplicate Code"
+      },
+      {
+        "command": "duplicateCodeDetector.ignoreDuplicate",
+        "title": "Ignore This Duplicate",
+        "category": "Duplicate Code"
+      }
+    ],
+    "configuration": {
+      "title": "Duplicate Code Detector",
+      "properties": {
+        "duplicateCodeDetector.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable duplicate code detection"
+        },
+        "duplicateCodeDetector.similarityThreshold": {
+          "type": "number",
+          "default": 0.8,
+          "minimum": 0.1,
+          "maximum": 1.0,
+          "description": "Similarity threshold for detecting duplicates (0.0-1.0)"
+        },
+        "duplicateCodeDetector.minLines": {
+          "type": "number",
+          "default": 3,
+          "minimum": 1,
+          "description": "Minimum number of lines to consider for duplicate detection"
+        },
+        "duplicateCodeDetector.scanOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Scan for duplicates when saving files"
+        },
+        "duplicateCodeDetector.scanOnType": {
+          "type": "boolean",
+          "default": false,
+          "description": "Scan for duplicates while typing (may impact performance)"
+        },
+        "duplicateCodeDetector.languages": {
+          "type": "array",
+          "default": ["javascript", "typescript", "python", "java", "go", "rust"],
+          "description": "Languages to enable duplicate detection for"
+        },
+        "duplicateCodeDetector.ignorePatterns": {
+          "type": "array",
+          "default": ["**/node_modules/**", "**/dist/**", "**/build/**", "**/.git/**"],
+          "description": "Glob patterns for files to ignore"
+        },
+        "duplicateCodeDetector.showCodeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show CodeLens hints above duplicate code"
+        },
+        "duplicateCodeDetector.maxDuplicatesToShow": {
+          "type": "number",
+          "default": 5,
+          "description": "Maximum number of duplicates to show in CodeLens"
+        }
+      }
+    },
+    "menus": {
+      "editor/context": [
+        {
+          "command": "duplicateCodeDetector.extractFunction",
+          "group": "9_cutcopypaste@5",
+          "when": "editorHasSelection"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
+    "eslint": "^8.28.0",
+    "typescript": "^4.9.4",
+    "@vscode/test-electron": "^2.2.0",
+    "@vscode/vsce": "^2.15.0"
+  },
+  "dependencies": {
+    "fast-levenshtein": "^3.0.0",
+    "tree-sitter": "^0.20.1",
+    "tree-sitter-javascript": "^0.19.0",
+    "tree-sitter-typescript": "^0.20.1",
+    "tree-sitter-python": "^0.20.1"
+  }
+}

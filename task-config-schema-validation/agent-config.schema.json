@@ -1,0 +1,527 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://evomap.ai/schemas/agent-config.json",
+  "title": "Agent Configuration",
+  "description": "Schema for AI Agent configuration files supporting multiple agent frameworks",
+  "type": "object",
+  "required": ["name", "version"],
+  "additionalProperties": true,
+  
+  "definitions": {
+    "modelConfig": {
+      "type": "object",
+      "description": "LLM model configuration",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": ["openai", "anthropic", "google", "azure", "deepseek", "mistral", "ollama", "custom"],
+          "description": "Model provider"
+        },
+        "model": {
+          "type": "string",
+          "description": "Model name/identifier"
+        },
+        "temperature": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2,
+          "default": 0.7,
+          "description": "Sampling temperature"
+        },
+        "maxTokens": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum tokens to generate"
+        },
+        "topP": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Nucleus sampling parameter"
+        },
+        "apiKey": {
+          "type": "string",
+          "description": "API key (or env var reference like ${ENV_VAR})"
+        },
+        "baseUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Custom base URL for API"
+        },
+        "timeout": {
+          "type": "integer",
+          "minimum": 1000,
+          "description": "Request timeout in milliseconds"
+        }
+      },
+      "required": ["provider", "model"]
+    },
+    
+    "toolConfig": {
+      "type": "object",
+      "description": "Tool/function configuration",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Tool name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Tool description"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether the tool is enabled"
+        },
+        "config": {
+          "type": "object",
+          "description": "Tool-specific configuration"
+        },
+        "timeout": {
+          "type": "integer",
+          "description": "Tool execution timeout in seconds"
+        }
+      },
+      "required": ["name"]
+    },
+    
+    "memoryConfig": {
+      "type": "object",
+      "description": "Memory and context management",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["buffer", "window", "vector", "graph", "hybrid", "none"],
+          "description": "Memory type"
+        },
+        "maxTokens": {
+          "type": "integer",
+          "description": "Maximum tokens in memory"
+        },
+        "windowSize": {
+          "type": "integer",
+          "description": "Window size for window memory"
+        },
+        "vectorStore": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "type": "string",
+              "enum": ["pinecone", "weaviate", "chroma", "milvus", "qdrant", "pgvector"]
+            },
+            "indexName": {
+              "type": "string"
+            },
+            "embeddingModel": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    
+    "promptTemplate": {
+      "type": "object",
+      "description": "Prompt template configuration",
+      "properties": {
+        "system": {
+          "type": "string",
+          "description": "System prompt template"
+        },
+        "user": {
+          "type": "string",
+          "description": "User message template"
+        },
+        "assistant": {
+          "type": "string",
+          "description": "Assistant message template"
+        },
+        "variables": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["string", "number", "boolean", "array", "object"]
+              },
+              "required": {
+                "type": "boolean",
+                "default": false
+              },
+              "default": {
+                "description": "Default value"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": ["name"]
+          }
+        }
+      }
+    },
+    
+    "workflowStep": {
+      "type": "object",
+      "description": "Workflow step definition",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Step identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Step name"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["llm", "tool", "condition", "loop", "parallel", "wait", "event"],
+          "description": "Step type"
+        },
+        "config": {
+          "type": "object",
+          "description": "Step-specific configuration"
+        },
+        "next": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Next step ID"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "condition": {
+                    "type": "string"
+                  },
+                  "step": {
+                    "type": "string"
+                  }
+                },
+                "required": ["step"]
+              }
+            }
+          ]
+        },
+        "onError": {
+          "type": "string",
+          "description": "Error handler step ID"
+        }
+      },
+      "required": ["id", "type"]
+    }
+  },
+  
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Agent name",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    
+    "version": {
+      "type": "string",
+      "description": "Configuration version",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+    },
+    
+    "description": {
+      "type": "string",
+      "description": "Agent description"
+    },
+    
+    "type": {
+      "type": "string",
+      "enum": ["chat", "task", "workflow", "autonomous", "multi-agent", "tool-calling", "custom"],
+      "default": "chat",
+      "description": "Agent type"
+    },
+    
+    "framework": {
+      "type": "string",
+      "enum": ["langchain", "langgraph", "autogen", "crewai", "dspy", "openai-assistants", "llamaindex", "semantic-kernel", "evomap", "custom"],
+      "description": "Framework used by this agent"
+    },
+    
+    "models": {
+      "oneOf": [
+        { "$ref": "#/definitions/modelConfig" },
+        {
+          "type": "array",
+          "items": { "$ref": "#/definitions/modelConfig" },
+          "minItems": 1
+        }
+      ],
+      "description": "Model configuration(s)"
+    },
+    
+    "prompts": {
+      "type": "object",
+      "description": "Prompt templates and settings",
+      "properties": {
+        "system": {
+          "type": "string",
+          "description": "Default system prompt"
+        },
+        "templates": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/promptTemplate" }
+        },
+        "optimization": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "method": {
+              "type": "string",
+              "enum": ["dspy", "promptbreeder", "gradient", "manual"]
+            }
+          }
+        }
+      }
+    },
+    
+    "tools": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/toolConfig" },
+      "description": "Available tools"
+    },
+    
+    "memory": {
+      "$ref": "#/definitions/memoryConfig"
+    },
+    
+    "workflow": {
+      "type": "object",
+      "description": "Workflow definition for workflow-type agents",
+      "properties": {
+        "entryPoint": {
+          "type": "string",
+          "description": "Entry step ID"
+        },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/workflowStep" }
+        },
+        "variables": {
+          "type": "object",
+          "description": "Workflow variables"
+        }
+      },
+      "required": ["entryPoint", "steps"]
+    },
+    
+    "agents": {
+      "type": "array",
+      "description": "Sub-agents for multi-agent systems",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["planner", "executor", "critic", "researcher", "writer", "reviewer", "custom"]
+          },
+          "model": {
+            "type": "string"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "tools": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "required": ["id", "name", "role"]
+      }
+    },
+    
+    "execution": {
+      "type": "object",
+      "description": "Execution settings",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["sync", "async", "streaming", "batch"],
+          "default": "sync"
+        },
+        "maxIterations": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum iterations for autonomous agents"
+        },
+        "timeout": {
+          "type": "integer",
+          "description": "Execution timeout in seconds"
+        },
+        "retry": {
+          "type": "object",
+          "properties": {
+            "maxAttempts": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 3
+            },
+            "backoff": {
+              "type": "string",
+              "enum": ["fixed", "linear", "exponential"],
+              "default": "exponential"
+            },
+            "delay": {
+              "type": "integer",
+              "description": "Initial delay in milliseconds",
+              "default": 1000
+            }
+          }
+        }
+      }
+    },
+    
+    "security": {
+      "type": "object",
+      "description": "Security and permissions",
+      "properties": {
+        "sandbox": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run in sandbox mode"
+        },
+        "allowedTools": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Allowed tool categories"
+        },
+        "blockedTools": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Blocked tool categories"
+        },
+        "rateLimit": {
+          "type": "object",
+          "properties": {
+            "requestsPerMinute": {
+              "type": "integer"
+            },
+            "tokensPerMinute": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    },
+    
+    "observability": {
+      "type": "object",
+      "description": "Monitoring and logging",
+      "properties": {
+        "logging": {
+          "type": "object",
+          "properties": {
+            "level": {
+              "type": "string",
+              "enum": ["debug", "info", "warn", "error"],
+              "default": "info"
+            },
+            "destination": {
+              "type": "string",
+              "enum": ["console", "file", "remote"]
+            },
+            "includePrompts": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "tracing": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "provider": {
+              "type": "string",
+              "enum": ["jaeger", "zipkin", "otel", "langsmith", "custom"]
+            }
+          }
+        },
+        "metrics": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "exportInterval": {
+              "type": "integer",
+              "description": "Export interval in seconds"
+            }
+          }
+        }
+      }
+    },
+    
+    "deployment": {
+      "type": "object",
+      "description": "Deployment configuration",
+      "properties": {
+        "platform": {
+          "type": "string",
+          "enum": ["local", "docker", "kubernetes", "lambda", "cloud-run", "ecs", "azure-functions"]
+        },
+        "scaling": {
+          "type": "object",
+          "properties": {
+            "minReplicas": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxReplicas": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "targetCpu": {
+              "type": "integer"
+            }
+          }
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string"
+            },
+            "memory": {
+              "type": "string"
+            },
+            "gpu": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    
+    "extensions": {
+      "type": "object",
+      "description": "Framework-specific extensions",
+      "additionalProperties": true
+    }
+  }
+}

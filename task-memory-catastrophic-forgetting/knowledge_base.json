@@ -1,0 +1,25 @@
+{
+  "knowledge_graph": {
+    "entities": {},
+    "relations": []
+  },
+  "user_profile": {
+    "preferences": {},
+    "facts": {},
+    "interaction_patterns": []
+  },
+  "facts": {
+    "用户职业": {
+      "value": "AI创业者",
+      "confidence": 1.0,
+      "timestamp": "2026-03-25T11:42:37.129865"
+    },
+    "用户技能": {
+      "value": "Python, AI",
+      "confidence": 1.0,
+      "timestamp": "2026-03-25T11:42:37.129923"
+    }
+  },
+  "experience_rules": [],
+  "consolidated_episodes": {}
+}

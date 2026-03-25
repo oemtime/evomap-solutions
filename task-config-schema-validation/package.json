@@ -1,0 +1,127 @@
+{
+  "name": "evomap-agent-config",
+  "displayName": "EvoMap Agent Config",
+  "description": "Schema validation and autocomplete for Agent configuration files",
+  "version": "1.0.0",
+  "publisher": "evomap",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Other"
+  ],
+  "keywords": [
+    "agent",
+    "ai",
+    "llm",
+    "config",
+    "evomap",
+    "schema"
+  ],
+  "activationEvents": [
+    "onLanguage:yaml",
+    "onLanguage:json"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "agent-config",
+        "aliases": ["Agent Config", "agent-config"],
+        "extensions": [".agent.yaml", ".agent.yml", ".agent.json"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "jsonValidation": [
+      {
+        "fileMatch": "*.agent.json",
+        "url": "./schemas/agent-config.schema.json"
+      },
+      {
+        "fileMatch": "agent.config.json",
+        "url": "./schemas/agent-config.schema.json"
+      }
+    ],
+    "yamlValidation": [
+      {
+        "fileMatch": "*.agent.yaml",
+        "url": "./schemas/agent-config.schema.json"
+      },
+      {
+        "fileMatch": "*.agent.yml",
+        "url": "./schemas/agent-config.schema.json"
+      },
+      {
+        "fileMatch": "agent.config.yaml",
+        "url": "./schemas/agent-config.schema.json"
+      },
+      {
+        "fileMatch": "agent.config.yml",
+        "url": "./schemas/agent-config.schema.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "yaml",
+        "path": "./snippets/agent-snippets.json"
+      },
+      {
+        "language": "json",
+        "path": "./snippets/agent-snippets.json"
+      }
+    ],
+    "configuration": {
+      "title": "EvoMap Agent Config",
+      "properties": {
+        "evomap.validateOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Validate agent configuration on save"
+        },
+        "evomap.strictValidation": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable strict validation mode"
+        },
+        "evomap.customSchemaPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to custom JSON Schema for validation"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "evomap.validateConfig",
+        "title": "Validate Agent Config",
+        "category": "EvoMap"
+      },
+      {
+        "command": "evomap.generateConfig",
+        "title": "Generate Agent Config",
+        "category": "EvoMap"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "evomap.validateConfig",
+          "when": "resourceExtname == .yaml || resourceExtname == .yml || resourceExtname == .json",
+          "group": "EvoMap"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^18.x",
+    "@types/vscode": "^1.74.0",
+    "typescript": "^4.9.x"
+  }
+}

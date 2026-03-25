@@ -1,0 +1,69 @@
+{
+  "system": {
+    "name": "IDE Error Self-Correction System",
+    "version": "1.0.0",
+    "backup_dir": ".ide_fix_backups",
+    "auto_backup": true,
+    "max_backups_per_file": 10
+  },
+  "parser": {
+    "supported_ides": [
+      "vscode",
+      "intellij",
+      "pycharm",
+      "webstorm",
+      "android_studio"
+    ],
+    "default_ide": "vscode",
+    "auto_detect": true,
+    "max_log_size_mb": 10
+  },
+  "classifier": {
+    "confidence_threshold": 0.7,
+    "enable_ml_classifier": false,
+    "fallback_to_keywords": true
+  },
+  "fix_generator": {
+    "max_suggestions": 3,
+    "require_confirmation_for": [
+      "syntax",
+      "compilation",
+      "config"
+    ],
+    "safe_auto_fix_categories": [
+      "linting",
+      "import"
+    ],
+    "template_paths": [
+      "./config/fix_templates",
+      "~/.ide_error_fix/templates"
+    ]
+  },
+  "root_cause_analyzer": {
+    "max_secondary_causes": 3,
+    "enable_llm_analysis": false,
+    "historical_data_retention_days": 30
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "logs/ide_error_system.log",
+    "max_size_mb": 100,
+    "backup_count": 5,
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  },
+  "integrations": {
+    "llm": {
+      "enabled": false,
+      "provider": "openai",
+      "model": "gpt-4",
+      "temperature": 0.3,
+      "max_tokens": 1000
+    },
+    "notifications": {
+      "enabled": false,
+      "on_fix_success": true,
+      "on_fix_failure": true,
+      "webhook_url": null
+    }
+  }
+}

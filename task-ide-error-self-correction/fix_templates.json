@@ -1,0 +1,171 @@
+{
+  "templates": {
+    "python_syntax": {
+      "missing_colon": {
+        "description": "在控制语句末尾添加冒号",
+        "pattern": "expected ':'",
+        "applies_to": ["syntax"],
+        "auto_fix": true,
+        "replacement": "{{line.rstrip()}}:"
+      },
+      "unclosed_string": {
+        "description": "关闭字符串字面量",
+        "pattern": "eol while scanning",
+        "applies_to": ["syntax"],
+        "auto_fix": false,
+        "replacement": "{{line}}{{matching_quote}}"
+      },
+      "unexpected_indent": {
+        "description": "修复缩进错误",
+        "pattern": "unexpected indent",
+        "applies_to": ["syntax"],
+        "auto_fix": true,
+        "replacement": "{{line.lstrip()}}"
+      },
+      "expected_indent": {
+        "description": "添加必要的缩进",
+        "pattern": "expected an indented block",
+        "applies_to": ["syntax"],
+        "auto_fix": true,
+        "replacement": "    {{line}}"
+      }
+    },
+    "python_import": {
+      "module_not_found": {
+        "description": "安装缺失的Python模块",
+        "pattern": "no module named",
+        "applies_to": ["import"],
+        "auto_fix": false,
+        "command": "pip install {{module_name}}",
+        "alternative_commands": [
+          "pip3 install {{module_name}}",
+          "python -m pip install {{module_name}}"
+        ]
+      },
+      "import_name_error": {
+        "description": "检查导入名称是否正确",
+        "pattern": "cannot import name",
+        "applies_to": ["import"],
+        "auto_fix": false,
+        "suggestions": [
+          "检查模块中是否存在 '{{name}}'",
+          "确认导出语句正确: 'from module import {{name}}'",
+          "尝试: 'import module' 然后使用 'module.{{name}}'"
+        ]
+      }
+    },
+    "python_type": {
+      "none_type_error": {
+        "description": "添加空值检查",
+        "pattern": "'NoneType'",
+        "applies_to": ["type", "runtime"],
+        "auto_fix": false,
+        "wrapper": "if {{variable}} is not None:\n    {{line}}"
+      },
+      "str_not_callable": {
+        "description": "检查变量名冲突",
+        "pattern": "'str' object is not callable",
+        "applies_to": ["type"],
+        "auto_fix": false,
+        "suggestions": [
+          "变量 '{{name}}' 可能覆盖了内置函数",
+          "重命名变量以避免冲突",
+          "检查之前的赋值语句"
+        ]
+      },
+      "type_mismatch": {
+        "description": "修复类型不匹配",
+        "pattern": "cannot concatenate",
+        "applies_to": ["type"],
+        "auto_fix": false,
+        "suggestions": [
+          "使用 str() 转换: str({{value}})",
+          "使用 f-string: f'{{{value}}}'",
+          "使用 format(): '{{}}'.format({{value}})"
+        ]
+      }
+    },
+    "python_runtime": {
+      "index_out_of_range": {
+        "description": "添加索引边界检查",
+        "pattern": "index out of range",
+        "applies_to": ["runtime"],
+        "auto_fix": false,
+        "wrapper": "if {{index}} < len({{sequence}}):\n    {{line}}"
+      },
+      "key_error": {
+        "description": "使用 .get() 方法或检查键是否存在",
+        "pattern": "keyerror",
+        "applies_to": ["runtime"],
+        "auto_fix": true,
+        "replacement": "{{dict}}.get({{key}}, {{default}})"
+      },
+      "attribute_error": {
+        "description": "检查对象属性",
+        "pattern": "attributeerror",
+        "applies_to": ["runtime"],
+        "auto_fix": false,
+        "suggestions": [
+          "确认对象类型正确",
+          "检查属性名拼写",
+          "使用 hasattr() 检查属性是否存在"
+        ]
+      }
+    },
+    "javascript": {
+      "undefined_variable": {
+        "description": "声明变量或检查作用域",
+        "pattern": "is not defined",
+        "applies_to": ["runtime"],
+        "auto_fix": false,
+        "suggestions": [
+          "添加 'let'/'const' 声明: let {{name}}",
+          "检查变量名拼写",
+          "确认变量在当前作用域可用"
+        ]
+      },
+      "missing_semicolon": {
+        "description": "添加分号",
+        "pattern": "unexpected token",
+        "applies_to": ["syntax"],
+        "auto_fix": true,
+        "replacement": "{{line}};"
+      },
+      "const_reassignment": {
+        "description": "将 const 改为 let",
+        "pattern": "Assignment to constant variable",
+        "applies_to": ["runtime"],
+        "auto_fix": true,
+        "replacement": "let {{name}} = {{value}}"
+      }
+    },
+    "java": {
+      "null_pointer": {
+        "description": "添加空值检查",
+        "pattern": "NullPointerException",
+        "applies_to": ["runtime"],
+        "auto_fix": false,
+        "wrapper": "if ({{variable}} != null) {\n    {{line}}\n}"
+      },
+      "class_not_found": {
+        "description": "检查类路径和导入",
+        "pattern": "ClassNotFoundException",
+        "applies_to": ["runtime"],
+        "auto_fix": false,
+        "suggestions": [
+          "添加正确的 import 语句",
+          "检查 classpath 配置",
+          "确认依赖已添加"
+        ]
+      },
+      "missing_return": {
+        "description": "添加 return 语句",
+        "pattern": "missing return statement",
+        "applies_to": ["compilation"],
+        "auto_fix": false,
+        "replacement": "{{line}}\nreturn {{default_value}};"
+      }
+    }
+  },
+  "custom_templates_path": "./custom_templates"
+}
